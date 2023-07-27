@@ -1,0 +1,174 @@
+---
+title: "R workshop draft"
+author: "keyla"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    fig_width: 10
+    fig_height: 6
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load}
+data<-read.csv("FFB.Keyla.Group.csv")
+library(ggplot2)
+library(reshape2)
+library(tidyverse)
+library(dplyr)
+
+names(data)[names(data) == "Condition...1..Unfamiliar.country.eats.familiar.food..2..unfamiliar.country.eats.unfamiliar.food.."] <- "unfamCountryfoodpair"
+
+names(data)[names(data) =="Rating...1.Really.don.t.like..to.4.Really.like."]<-"ratings"
+
+names(data)[names(data) =="Time...0..pre.test..1..post.test"]<-"prePosttest"
+
+names(data)[names(data) =="PID...Participant.ID..4.lines.per.participants"]<-"pid"
+
+names(data)[names(data) =="FoodFam...Which.type.of.food.children.saw.them.with..0..unfamiliar..1..familiar"]<-"FamUnfamFood"
+data$GroupCountryFam<-as.factor(data$GroupCountryFam)
+data$unfamCountryfoodpair<-as.factor(data$unfamCountryfoodpair)
+data$prePosttest<-as.factor(data$prePosttest)
+data$FamUnfamFood<-as.factor(data$FamUnfamFood)
+```
+## Overview
+
+This report presents preliminary data analysis from a study conducted by the UCSB child Studies Lab. Basically this will report basic descriptive statistics as well as report tests of the following predictions:
+
+1. Children will like people from America more than from Suriname
+2. Children will like people who eat familiar foods more than people who eat unfamiliar foods
+3. Liking will increase after learning that people eat familiar foods
+  
+
+
+
+```{r dataprep}
+preference_table <- table(data$GroupCountryFam, data$ratings)
+preference_table
+```
+
+## Prediction 1 Analysis
+
+We can reject the null hypothesis, indicating that there is a significant association between country familiarity and general likability. In other words children liked kids from America more than kids from Suriname. 
+
+```{r p1}
+#run one-way anova
+p1 <-aov(ratings~GroupCountryFam+Error(pid),data=data)
+#output result
+summary(p1)
+
+plot1 <- ggplot(data = data,
+                  aes(x = GroupCountryFam,
+                      y = ratings,
+                      fill =GroupCountryFam)) +
+  labs(x = "Country", y = "Likability Rating") +
+  scale_x_discrete(labels = c("Suriname","America" )) +
+ 
+  theme_grey(base_size = 20) +
+  guides(fill=F)+
+  geom_violin(position=position_dodge(.9))+
+  geom_boxplot(position=position_dodge(.9),
+               width=.1)
+plot1
+```
+
+
+## Prediction 2 Analysis
+significant change, children like people who eat familiar foods more than unfamiliar foods. 
+
+```{r p2}
+# anova
+p2<-aov(ratings~FamUnfamFood+Error(pid),data = data)
+summary(p2)
+
+#Graph it
+plot2 <- ggplot(data = data,
+                  aes(x = FamUnfamFood,
+                      y = ratings,
+                      fill =FamUnfamFood)) +
+  labs(x = "Food Familiarity", y = "Likability Rating") +
+  scale_x_discrete(labels = c("Unfamiliar Food","Familiar Food" )) +
+ 
+  theme_grey(base_size = 20) +
+  guides(fill=F)+
+  geom_violin(position=position_dodge(.9))+
+  geom_boxplot(position=position_dodge(.9),
+               width=.1)
+plot2
+
+```
+
+### Prediction 2.2
+```{r p2.2}
+p2.2<-aov(ratings~FamUnfamFood+Error(pid),data = data[data$GroupCountryFam==0,])
+summary(p2.2)
+
+#Graph it
+plot2.2 <- ggplot(data = data[data$GroupCountryFam==0,],
+                  aes(x = FamUnfamFood,
+                      y = ratings,
+                      fill =FamUnfamFood)) +
+  labs(x = "Food Familiarity", y = "Likability Rating (Suriname Only") +
+  scale_x_discrete(labels = c("Unfamiliar Food","Familiar Food" )) +
+ 
+  theme_grey(base_size = 20) +
+  guides(fill=F)+
+  geom_violin(position=position_dodge(.9))+
+  geom_boxplot(position=position_dodge(.9),
+               width=.1)
+plot2.2
+
+```
+
+
+## Prediction 3 Analysis
+
+We fail to reject the null hypothesis, meaning that there was no significant change in the Pre to Post test ratings after the unfamiliar country was paired with either a familiar or unfamiliar food.This indicates that children opinions don't seem to change after learning that people eat familiar foods.
+
+```{r p3}
+p3<-aov(ratings~prePosttest*FamUnfamFood+Error(pid),data=data)
+summary(p3)
+
+#graph it
+plot3 <- ggplot(data = data,
+                  aes(x = FamUnfamFood,
+                      y = ratings,
+                      fill =prePosttest)) +
+  labs(x = "Food Familiarity", y = "Likability Rating",fill="Pre/Post Test") +
+  scale_x_discrete(labels = c("Unfamiliar Food","Familiar Food" )) +
+   scale_fill_manual(values=c("deeppink4","skyblue"),
+                    labels=c("Pre-Test","Post-Test"))+
+ 
+  theme_grey(base_size = 20) +
+  geom_violin(position=position_dodge(.9))+
+  geom_boxplot(position=position_dodge(.9),
+               width=.1)
+plot3
+```
+####
+by country
+```{r}
+plot3.2 <- ggplot(data = data,
+                  aes(x = FamUnfamFood,
+                      y = ratings,
+                      fill =prePosttest)) +
+  labs(x = "Food Familiarity", y = "Likability Rating",fill="Pre/Post Test") +
+  scale_x_discrete(labels = c("Unfamiliar Food","Familiar Food" )) +
+   scale_fill_manual(values=c("deeppink4","skyblue"),
+                    labels=c("Pre-Test","Post-Test"))+
+ 
+  theme_grey(base_size = 20) +
+  geom_violin(position=position_dodge(.9))+
+  geom_boxplot(position=position_dodge(.9),
+               width=.1)+
+  facet_wrap(~factor(GroupCountryFam,labels=c("Suriname","America")))
+plot3.2
+
+ggsave("plot3.2.tiff",plot3.2,width=10,height=6,units="in",dpi=150)
+```
+
+

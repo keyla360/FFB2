@@ -41,15 +41,11 @@ This report presents preliminary data analysis from a study conducted by the UCS
 
 1. Children will like people from America more than from Suriname
 2. Children will like people who eat familiar foods more than people who eat unfamiliar foods
+  +2.2 Children will like people from Suriname more after seeing them eat familiar foods rather than unfamiliar foods. 
 3. Liking will increase after learning that people eat familiar foods
   
+  
 
-
-
-```{r dataprep}
-preference_table <- table(data$GroupCountryFam, data$ratings)
-preference_table
-```
 
 ## Prediction 1 Analysis
 
@@ -78,7 +74,8 @@ plot1
 
 
 ## Prediction 2 Analysis
-significant change, children like people who eat familiar foods more than unfamiliar foods. 
+
+For prediction 2 we can reject the null hypothesis, indicating that there is significant evidence showing that children like people who eat familiar foods more than unfamiliar foods.  
 
 ```{r p2}
 # anova
@@ -103,6 +100,12 @@ plot2
 ```
 
 ### Prediction 2.2
+
+In order to try to minimize the confounds from prediction 2, we will look at how food familiarity influences likability rating within Suriname only.
+
+For prediction 2.2 we fail to reject the null hypothesis as there is not a significant effect between food familiarity and likability rating for Suriname. This suggests that when a person from an unknown country is shown eating a familiar, or unfamiliar food it doesn't significantly influence a child's general liking towards them. 
+
+
 ```{r p2.2}
 p2.2<-aov(ratings~FamUnfamFood+Error(pid),data = data[data$GroupCountryFam==0,])
 summary(p2.2)
@@ -127,7 +130,7 @@ plot2.2
 
 ## Prediction 3 Analysis
 
-We fail to reject the null hypothesis, meaning that there was no significant change in the Pre to Post test ratings after the unfamiliar country was paired with either a familiar or unfamiliar food.This indicates that children opinions don't seem to change after learning that people eat familiar foods.
+For prediction 3 we fail to reject the null hypothesis, meaning that there was no significant change in the Pre to Post test ratings after the unfamiliar country was paired with either a familiar or unfamiliar food.This indicates that children opinions don't seem to change after learning that people eat familiar foods.
 
 ```{r p3}
 p3<-aov(ratings~prePosttest*FamUnfamFood+Error(pid),data=data)
@@ -149,9 +152,10 @@ plot3 <- ggplot(data = data,
                width=.1)
 plot3
 ```
-####
-by country
-```{r}
+#### Prediction 3.2
+For prediction 3.2 we made a more specific plot to see the differences in pre/post test ratings within each individual country. We don't see significant changes in the ratings after children learned that Suriname either ate familiar or unfamiliar foods. 
+```{r p3.2}
+
 plot3.2 <- ggplot(data = data,
                   aes(x = FamUnfamFood,
                       y = ratings,
